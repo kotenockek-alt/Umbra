@@ -5,6 +5,46 @@ import { Avatar, Modal, IconSend, IconPlus, IconExit } from '@/components/ui';
 import type { FeedItem, UserRole, MemberRole, Chat } from '@/types/db';
 
 /* ========================================================================
+   Форматирование текста сообщения:
+   **жирный**  → жирный шрифт
+   *курсив*    → курсив
+   переносы строк → абзацы
+   ======================================================================== */
+function renderFormatted(text: string): React.ReactNode {
+  // разбиваем на строки, чтобы сохранить абзацы/переносы
+  const lines = text.split('\n');
+  return lines.map((line, li) => (
+    <React.Fragment key={li}>
+      {parseInline(line)}
+      {li < lines.length - 1 && <br />}
+    </React.Fragment>
+  ));
+}
+
+// обработка **жирный** и *курсив* внутри одной строки
+function parseInline(line: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  // регулярка ловит **...** или *...*
+  const re = /(\*\*([^*]+)\*\*|\*([^*]+)\*)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = re.exec(line)) !== null) {
+    if (m.index > last) nodes.push(line.slice(last, m.index));
+    if (m[2] !== undefined) {
+      // **жирный**
+      nodes.push(<strong key={key++}>{m[2]}</strong>);
+    } else if (m[3] !== undefined) {
+      // *курсив*
+      nodes.push(<em key={key++}>{m[3]}</em>);
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) nodes.push(line.slice(last));
+  return nodes;
+}
+
+/* ========================================================================
    Пузырь сообщения — белый, чёрный текст, закруглённые углы (как Telegram).
    Под сообщением: аватарка роли + название роли. Имя пользователя НЕ видно.
    ======================================================================== */
@@ -16,6 +56,7 @@ export function MessageBubble({ item }: { item: Extract<FeedItem, { type: 'messa
         borderRadius: 18, borderBottomLeftRadius: 6,
         padding: '9px 13px', fontSize: 15, lineHeight: 1.4,
         boxShadow: '0 4px 14px rgba(0,0,0,.5)', wordBreak: 'break-word',
+        whiteSpace: 'pre-wrap',
       }}>
         {item.kind === 'image' && item.media_url && (
           <img src={item.media_url} alt="" style={{ maxWidth: '100%', borderRadius: 12, marginBottom: item.body ? 6 : 0 }} />
@@ -23,7 +64,7 @@ export function MessageBubble({ item }: { item: Extract<FeedItem, { type: 'messa
         {item.kind === 'video' && item.media_url && (
           <video src={item.media_url} controls style={{ maxWidth: '100%', borderRadius: 12, marginBottom: item.body ? 6 : 0 }} />
         )}
-        {item.body}
+        {item.body && renderFormatted(item.body)}
       </div>
       {/* роль под сообщением */}
       <div className="row gap-8" style={{ marginTop: 5, marginLeft: 4 }}>
@@ -112,13 +153,21 @@ export function Composer({
           <span className="muted" style={{ fontSize: 12 }}>от имени: {selectedRole.name}</span>
         </div>
       )}
-      <div className="row gap-8">
-        <input
+      <div className="row gap-8" style={{ alignItems: 'flex-end' }}>
+        <textarea
           className="input grow"
-          placeholder="Сообщение…"
+          placeholder="Сообщение…   (Shift+Enter — новая строка)"
           value={text}
+          rows={1}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send()}
+          onKeyDown={(e) => {
+            // Enter — отправить; Shift+Enter — перенос строки (абзац)
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          style={{ resize: 'none', maxHeight: 120, fontFamily: 'var(--font-body)', lineHeight: 1.4 }}
         />
         <button className="btn-icon" onClick={() => setMenu(true)} aria-label="Меню">
           <IconPlus size={22} color="var(--ash)" />
