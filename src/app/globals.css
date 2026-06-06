@@ -1,6 +1,6 @@
 /* ============================================================================
    UMBRA — дизайн-система. Хоррор / мистика: чёрный фон, тёмно-серые панели,
-   глубокие тени, зернистая текстура, кроваво-красный акцент, плавные анимации.
+   глубокие тени, зернистая текстура, синий акцент, плавные анимации.
    ============================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap');
@@ -14,9 +14,9 @@
   --panel-3:     #26262d;   /* hover / границы */
   --ash:         #8a8a93;   /* приглушённый серый текст (события) */
   --bone:        #e6e3df;   /* основной светлый текст */
-  --blood:       #7c1018;   /* кроваво-красный акцент */
-  --blood-bright:#b3161f;
-  --ember:       #d4392f;   /* свечение акцента */
+  --blood:       #1230a8;   /* глубокий синий акцент */
+  --blood-bright:#1d4ed8;
+  --ember:       #2563eb;   /* свечение акцента (синее) */
 
   /* Шрифты */
   --font-display: 'Cormorant Garamond', serif;  /* заголовки, мистический */
@@ -25,7 +25,7 @@
   /* Тени */
   --shadow-soft:  0 2px 12px rgba(0,0,0,.6);
   --shadow-deep:  0 18px 50px rgba(0,0,0,.85);
-  --glow-blood:   0 0 22px rgba(212,57,47,.35);
+  --glow-blood:   0 0 22px rgba(37,99,235,.4);
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -76,9 +76,12 @@ body::after {
   flex-direction: column;
   overflow: hidden;
   box-shadow: var(--shadow-deep);
+  /* отступы под «чёлку» и нижнюю полосу айфона (safe area) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 @media (min-width: 520px) {
-  .app-shell { height: 92dvh; margin-top: 4dvh; border-radius: 22px; border: 1px solid var(--panel-3); }
+  .app-shell { height: 92dvh; margin-top: 4dvh; border-radius: 22px; border: 1px solid var(--panel-3); padding-top: 0; padding-bottom: 0; }
 }
 
 /* ---- Типографика ---- */
@@ -146,14 +149,4 @@ body::after {
 
 /* ---- Скроллбар ---- */
 *::-webkit-scrollbar { width: 6px; }
-*::-webkit-scrollbar-thumb { background: var(--panel-3); border-radius: 3px; }
-*::-webkit-scrollbar-track { background: transparent; }
-
-/* ---- Утилиты ---- */
-.row { display: flex; align-items: center; }
-.between { justify-content: space-between; }
-.gap-8 { gap: 8px; } .gap-12 { gap: 12px; } .gap-16 { gap: 16px; }
-.grow { flex: 1; min-width: 0; }
-.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.muted { color: var(--ash); }
-.center-col { display: flex; flex-direction: column; }
+*::-webk
