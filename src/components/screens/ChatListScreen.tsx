@@ -156,9 +156,18 @@ function CreateChatModal({
       .insert({ title: title.trim(), creator_id: userId, is_group: true })
       .select()
       .single();
-    setBusy(false);
     if (error || !data) {
+      setBusy(false);
       setErr('Не удалось создать чат: ' + (error?.message ?? 'неизвестная ошибка'));
+      return;
+    }
+    // ВАЖНО: добавляем создателя в участники, иначе чат не появится в списке
+    const { error: memErr } = await supabase
+      .from('chat_members')
+      .insert({ chat_id: data.id, user_id: userId, system_role: 'creator' });
+    setBusy(false);
+    if (memErr && !memErr.message.includes('duplicate')) {
+      setErr('Чат создан, но не удалось вступить: ' + memErr.message);
       return;
     }
     setTitle('');
