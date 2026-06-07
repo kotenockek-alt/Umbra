@@ -3,8 +3,17 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useChats } from '@/hooks/useChats';
-import { Avatar, Modal, IconSettings, IconPlus, IconSearch } from '@/components/ui';
+import { Avatar, Modal, IconSettings, IconPlus, IconSearch, IconChat, IconUserPlus } from '@/components/ui';
 import type { Chat, Contact, Profile } from '@/types/db';
+
+// Форматирует время последнего сообщения: «14:30» сегодня, иначе дата
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay) return d.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' });
+}
 
 export function ChatListScreen({
   userId, onOpenChat, onOpenSettings, onOpenContact,
@@ -81,6 +90,11 @@ export function ChatListScreen({
               <div className="title-display" style={{ fontSize: 17 }}>{c.title}</div>
               <div className="muted ellipsis" style={{ fontSize: 13 }}>групповой чат</div>
             </div>
+            {c.last_message_at && (
+              <span className="muted" style={{ fontSize: 12, flexShrink: 0 }}>
+                {formatTime(c.last_message_at)}
+              </span>
+            )}
           </div>
         ))}
         {tab === 'stories' && chats.length === 0 && (
@@ -105,8 +119,14 @@ export function ChatListScreen({
       {/* Меню плюса */}
       <Modal open={plusMenu} onClose={() => setPlusMenu(false)} title="Создать">
         <div className="center-col gap-8">
-          <button className="btn" onClick={() => { setPlusMenu(false); setCreateOpen(true); }}>💬 Создать чат</button>
-          <button className="btn" onClick={() => { setPlusMenu(false); setAddContactOpen(true); }}>👤 Добавить контакт</button>
+          <button className="btn row gap-12" style={{ justifyContent: 'flex-start' }}
+            onClick={() => { setPlusMenu(false); setCreateOpen(true); }}>
+            <IconChat color="var(--ember)" /> Создать чат
+          </button>
+          <button className="btn row gap-12" style={{ justifyContent: 'flex-start' }}
+            onClick={() => { setPlusMenu(false); setAddContactOpen(true); }}>
+            <IconUserPlus color="var(--ember)" /> Добавить контакт
+          </button>
         </div>
       </Modal>
 
@@ -124,14 +144,25 @@ function CreateChatModal({
 }: { open: boolean; onClose: () => void; userId: string; onCreated: () => void }) {
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const create = async () => {
     if (!title.trim()) return;
     setBusy(true);
-    // аватар/фон можно загрузить через uploadFile — здесь создаём с названием,
-    // изображения добавляются в меню чата (сменить аватар/фон).
-    await supabase.from('chats').insert({ title: title.trim(), creator_id: userId, is_group: true });
-    setBusy(false); setTitle(''); onCreated();
+    setErr(null);
+    // создаём чат и сразу получаем его обратно (.select), чтобы убедиться, что сохранился
+    const { data, error } = await supabase
+      .from('chats')
+      .insert({ title: title.trim(), creator_id: userId, is_group: true })
+      .select()
+      .single();
+    setBusy(false);
+    if (error || !data) {
+      setErr('Не удалось создать чат: ' + (error?.message ?? 'неизвестная ошибка'));
+      return;
+    }
+    setTitle('');
+    onCreated();
   };
 
   return (
@@ -139,6 +170,7 @@ function CreateChatModal({
       <div className="center-col gap-12">
         <input className="input" placeholder="Название чата" value={title} onChange={(e) => setTitle(e.target.value)} />
         <p className="muted" style={{ fontSize: 12 }}>Аватар и фон можно задать в меню чата после создания.</p>
+        {err && <p style={{ color: 'var(--ember)', fontSize: 13 }}>{err}</p>}
         <button className="btn btn-blood" disabled={busy} onClick={create}>Создать</button>
       </div>
     </Modal>
@@ -154,12 +186,19 @@ function AddContactModal({
 
   const add = async () => {
     setErr(null);
+    const clean = uname.trim().replace(/^@/, '');
+    if (!clean) { setErr('Введите username'); return; }
     const { data: prof } = await supabase
-      .from('profiles').select('*').ilike('username', uname).maybeSingle();
+      .from('profiles').select('*').ilike('username', clean).maybeSingle();
     if (!prof) { setErr('Пользователь не найден'); return; }
     if (prof.id === userId) { setErr('Это вы'); return; }
-    await supabase.from('contacts').insert({ owner_id: userId, contact_id: prof.id });
-    setUname(''); onAdded();
+    // не добавляем дубликат
+    const { data: existing } = await supabase
+      .from('contacts').select('id').eq('owner_id', userId).eq('contact_id', prof.id).maybeSingle();
+    if (existing) { setErr('Контакт уже добавлен'); return; }
+    const { error } = await supabase.from('contacts').insert({ owner_id: userId, contact_id: prof.id });
+    if (error) { setErr('Ошибка: ' + error.message); return; }
+    setUname(''); onAdded(); onClose();
   };
 
   return (

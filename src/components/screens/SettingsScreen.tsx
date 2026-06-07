@@ -133,6 +133,14 @@ export function SettingsScreen({
           }}>Создать роль</button>
         </div>
       </Modal>
+
+      {/* Выход из аккаунта */}
+      <div style={{ padding: '20px 16px 32px' }}>
+        <button className="btn" style={{ width: '100%', color: 'var(--ember)', border: '1px solid var(--panel-3)' }}
+          onClick={async () => { await supabase.auth.signOut(); location.reload(); }}>
+          Выйти из аккаунта
+        </button>
+      </div>
     </div>
   );
 }

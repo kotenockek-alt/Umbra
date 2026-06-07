@@ -33,6 +33,11 @@ export function AuthScreen({ onDone }: { onDone: () => void }) {
             .insert({ id: uid, name: name || 'Безымянный', username });
           if (pErr) throw new Error('Не удалось создать профиль: ' + pErr.message);
         }
+        // сразу входим после регистрации, чтобы не вводить данные заново
+        if (!data.session) {
+          const { error: inErr } = await supabase.auth.signInWithPassword({ email, password: pass });
+          if (inErr) throw new Error('Регистрация прошла, но вход не удался: ' + inErr.message);
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
         if (error) throw error;
