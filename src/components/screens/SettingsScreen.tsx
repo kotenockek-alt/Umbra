@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useRoles } from '@/hooks/useRoles';
+import { useStickers } from '@/hooks/useStickers';
 import { usernameError } from '@/lib/username';
 import { uploadFile } from '@/lib/storage';
 import { Avatar, Modal, IconBack } from '@/components/ui';
@@ -12,6 +13,7 @@ export function SettingsScreen({
   profile, onBack, onSaved,
 }: { profile: Profile; onBack: () => void; onSaved: () => void }) {
   const { roles, createRole, deleteRole } = useRoles(profile.id);
+  const { stickers, addSticker, deleteSticker } = useStickers(profile.id);
   const [name, setName] = useState(profile.name);
   const [username, setUsername] = useState(profile.username);
   const [err, setErr] = useState<string | null>(null);
@@ -88,6 +90,36 @@ export function SettingsScreen({
             </button>
           </div>
         ))}
+
+        {/* Стикеры */}
+        <div className="row between" style={{ margin: '26px 0 12px' }}>
+          <h3 className="title-display" style={{ fontSize: 20 }}>Мои стикеры</h3>
+          <label className="btn" style={{ cursor: 'pointer' }}>
+            + Стикер
+            <input type="file" accept="image/*" hidden onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (f) { const url = await uploadFile('media', f); await addSticker(url); }
+              e.target.value = '';
+            }} />
+          </label>
+        </div>
+        <p className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+          Загрузите картинки — их можно отправлять в любых чатах через меню «плюс».
+        </p>
+
+        <div className="row" style={{ flexWrap: 'wrap', gap: 10 }}>
+          {stickers.map((s) => (
+            <div key={s.id} style={{ position: 'relative' }}>
+              <img src={s.url} alt="" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--panel-3)' }} />
+              <button onClick={() => deleteSticker(s.id)}
+                style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%',
+                  background: 'var(--blood)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
+          ))}
+          {stickers.length === 0 && <p className="muted" style={{ fontSize: 13 }}>Пока нет стикеров.</p>}
+        </div>
       </div>
 
       <Modal open={roleModal} onClose={() => setRoleModal(false)} title="Новая роль">
