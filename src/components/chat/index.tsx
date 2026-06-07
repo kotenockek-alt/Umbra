@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Avatar, Modal, IconSend, IconPlus, IconExit } from '@/components/ui';
-import type { FeedItem, UserRole, MemberRole, Chat } from '@/types/db';
+import { Avatar, Modal, IconSend, IconPlus, IconExit,
+  IconMask, IconImage, IconMoon, IconEdit, IconRolePlus, IconUsers, IconList, IconCalendar } from '@/components/ui';
+import type { FeedItem, UserRole, MemberRole, Chat, Sticker } from '@/types/db';
 
 /* ========================================================================
    Форматирование текста сообщения:
@@ -125,17 +126,20 @@ export function ChatHeader({
    Композер — поле ввода, отправка, плюс (роль / фото / видео).
    ======================================================================== */
 export function Composer({
-  roles, selectedRole, onPickRole, onSendText, onSendMedia,
+  roles, selectedRole, onPickRole, onSendText, onSendMedia, stickers, onSendSticker,
 }: {
   roles: UserRole[];
   selectedRole: UserRole | null;
   onPickRole: (r: UserRole) => void;
   onSendText: (text: string) => void;
   onSendMedia: (file: File) => void;
+  stickers: Sticker[];
+  onSendSticker: (url: string) => void;
 }) {
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const [rolePick, setRolePick] = useState(false);
+  const [stickerPick, setStickerPick] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const send = () => {
@@ -184,12 +188,28 @@ export function Composer({
 
       <Modal open={menu} onClose={() => setMenu(false)} title="Действие">
         <div className="center-col gap-8">
-          <button className="btn" onClick={() => { setMenu(false); setRolePick(true); }}>
-            🎭 Выбрать роль для отправки
+          <button className="btn row gap-12" style={{ justifyContent: 'flex-start' }}
+            onClick={() => { setMenu(false); setRolePick(true); }}>
+            <IconMask color="var(--ember)" /> Выбрать роль для отправки
           </button>
-          <button className="btn" onClick={() => { setMenu(false); fileRef.current?.click(); }}>
-            🖼 Отправить изображение / видео
+          <button className="btn row gap-12" style={{ justifyContent: 'flex-start' }}
+            onClick={() => { setMenu(false); fileRef.current?.click(); }}>
+            <IconImage color="var(--ember)" /> Отправить изображение / видео
           </button>
+          <button className="btn row gap-12" style={{ justifyContent: 'flex-start' }}
+            onClick={() => { setMenu(false); setStickerPick(true); }}>
+            <IconImage color="var(--ember)" /> Отправить стикер
+          </button>
+        </div>
+      </Modal>
+
+      <Modal open={stickerPick} onClose={() => setStickerPick(false)} title="Стикеры">
+        <div className="row" style={{ flexWrap: 'wrap', gap: 10 }}>
+          {stickers.length === 0 && <p className="muted">Создайте стикеры в настройках профиля.</p>}
+          {stickers.map((s) => (
+            <img key={s.id} src={s.url} alt="" onClick={() => { onSendSticker(s.url); setStickerPick(false); }}
+              style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 12, cursor: 'pointer', border: '1px solid var(--panel-3)' }} />
+          ))}
         </div>
       </Modal>
 
@@ -224,24 +244,25 @@ export function ChatMenu({
   const canRoles = role === 'creator' || role === 'admin';
   const canEvents = role === 'creator' || role === 'admin';
 
-  const Item = ({ label, on }: { label: string; on?: () => void }) =>
+  const Item = ({ label, icon, on }: { label: string; icon: React.ReactNode; on?: () => void }) =>
     on ? (
-      <button className="btn" style={{ justifyContent: 'flex-start', textAlign: 'left' }}
-        onClick={() => { on(); onClose(); }}>{label}</button>
+      <button className="btn row gap-12" style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+        onClick={() => { on(); onClose(); }}>{icon} {label}</button>
     ) : null;
 
+  const c = 'var(--ember)';
   return (
     <Modal open={open} onClose={onClose} title="Меню чата">
       <div className="center-col gap-8">
-        {canBackground && <Item label="🌑 Сменить фон" on={actions.background} />}
-        {canTitle && <Item label="✏️ Сменить название" on={actions.title} />}
-        {canTitle && <Item label="🖼 Сменить аватарку чата" on={actions.avatar} />}
-        {canRoles && <Item label="➕ Добавить роль" on={actions.addRole} />}
-        {canRoles && <Item label="🎭 Изменить роль" on={actions.editRole} />}
-        {role === 'member' && <Item label="🎭 Выбрать роль" on={actions.selectRole} />}
-        <Item label="👥 Посмотреть участников" on={actions.members} />
-        <Item label="🗂 Роли участников" on={actions.memberRoles} />
-        {canEvents && <Item label="📅 Добавить событие" on={actions.addEvent} />}
+        {canBackground && <Item icon={<IconMoon color={c} />} label="Сменить фон" on={actions.background} />}
+        {canTitle && <Item icon={<IconEdit color={c} />} label="Сменить название" on={actions.title} />}
+        {canTitle && <Item icon={<IconImage color={c} />} label="Сменить аватарку чата" on={actions.avatar} />}
+        {canRoles && <Item icon={<IconRolePlus color={c} />} label="Добавить роль" on={actions.addRole} />}
+        {canRoles && <Item icon={<IconMask color={c} />} label="Изменить роль" on={actions.editRole} />}
+        {role === 'member' && <Item icon={<IconMask color={c} />} label="Выбрать роль" on={actions.selectRole} />}
+        <Item icon={<IconUsers color={c} />} label="Посмотреть участников" on={actions.members} />
+        <Item icon={<IconList color={c} />} label="Роли участников" on={actions.memberRoles} />
+        {canEvents && <Item icon={<IconCalendar color={c} />} label="Добавить событие" on={actions.addEvent} />}
         <div style={{ height: 1, background: 'var(--panel-3)', margin: '4px 0' }} />
         <button className="btn btn-blood" onClick={() => { actions.leave(); onClose(); }}>
           Выйти из чата
