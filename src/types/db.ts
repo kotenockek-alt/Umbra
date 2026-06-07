@@ -37,6 +37,7 @@ export interface Chat {
   is_group: boolean;
   creator_id: string;
   created_at: string;
+  last_message_at?: string | null;
 }
 
 export interface ChatMember {
@@ -73,3 +74,10 @@ export interface ChatEvent {
 export type FeedItem =
   | ({ type: 'message' } & Message)
   | ({ type: 'event' } & ChatEvent);
+
+export interface Sticker {
+  id: string;
+  owner_id: string;
+  url: string;
+  created_at: string;
+}
