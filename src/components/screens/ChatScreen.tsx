@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useMessages } from '@/hooks/useMessages';
 import { useRoles } from '@/hooks/useRoles';
+import { useStickers } from '@/hooks/useStickers';
 import { uploadFile, mediaKind } from '@/lib/storage';
 import { MessageBubble, EventLine, ChatHeader, Composer, ChatMenu } from '@/components/chat';
 import { Modal } from '@/components/ui';
@@ -14,6 +15,7 @@ export function ChatScreen({
 }: { chat: Chat; userId: string; onBack: () => void }) {
   const { feed, reload } = useMessages(chat.id);
   const { roles } = useRoles(userId);
+  const { stickers } = useStickers(userId);
   const [myRole, setMyRole] = useState<MemberRole>('member');
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,6 +43,12 @@ export function ChatScreen({
     await supabase.from('messages').insert({
       chat_id: chat.id, sender_id: userId, role_id: selectedRole?.id ?? null,
       kind: mediaKind(file), media_url: url,
+    });
+  };
+  const sendSticker = async (url: string) => {
+    await supabase.from('messages').insert({
+      chat_id: chat.id, sender_id: userId, role_id: selectedRole?.id ?? null,
+      kind: 'image', media_url: url,
     });
   };
 
@@ -96,6 +104,8 @@ export function ChatScreen({
         onPickRole={setSelectedRole}
         onSendText={sendText}
         onSendMedia={sendMedia}
+        stickers={stickers}
+        onSendSticker={sendSticker}
       />
 
       <ChatMenu open={menuOpen} onClose={() => setMenuOpen(false)} role={myRole} actions={menuActions} />
