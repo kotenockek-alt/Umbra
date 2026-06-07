@@ -87,3 +87,45 @@ export const IconExit = ({ size = 22, color = 'currentColor' }: IconProps) => (
 export const IconBack = ({ size = 24, color = 'currentColor' }: IconProps) => (
   <svg viewBox="0 0 24 24" {...base(size, color)}><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
 );
+
+/* ---- Иконки для пунктов меню (в акцентном цвете) ---- */
+export const IconMask = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}>
+    <path d="M3 5s2 1 9 1 9-1 9-1v6a9 9 0 0 1-18 0V5z" /><circle cx="9" cy="10" r="1" /><circle cx="15" cy="10" r="1" /><path d="M9 15c1 1 5 1 6 0" />
+  </svg>
+);
+export const IconImage = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}>
+    <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="m21 16-5-5L5 20" />
+  </svg>
+);
+export const IconChat = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z" /></svg>
+);
+export const IconUserPlus = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}>
+    <circle cx="9" cy="8" r="3.5" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><path d="M19 8v6M16 11h6" />
+  </svg>
+);
+export const IconMoon = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+);
+export const IconEdit = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+);
+export const IconRolePlus = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 14 0" /><path d="M12 11v4M10 13h4" /></svg>
+);
+export const IconUsers = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}>
+    <circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 5.5a3 3 0 0 1 0 5.8M21 20a6 6 0 0 0-5-5.9" />
+  </svg>
+);
+export const IconList = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+);
+export const IconCalendar = ({ size = 20, color = 'currentColor' }: IconProps) => (
+  <svg viewBox="0 0 24 24" {...base(size, color)}>
+    <rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+);
